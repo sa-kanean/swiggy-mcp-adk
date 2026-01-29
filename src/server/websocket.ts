@@ -377,11 +377,12 @@ export function setupWebSocket(
 
     try {
       const mcpTools = await connectMCP(roomId, actionType, tokens);
-      // Push MCP tools into the shared agent tools array
-      // so the LLM can use them in subsequent calls
-      for (const tool of mcpTools) {
-        agentTools.push(tool);
-      }
+      // Remove any existing tools with the same names to avoid duplicates,
+      // then push the new MCP tools into the shared agent tools array
+      const mcpToolNames = new Set(mcpTools.map((t: any) => t.name));
+      const filtered = agentTools.filter((t: any) => !mcpToolNames.has(t.name));
+      agentTools.length = 0;
+      agentTools.push(...filtered, ...mcpTools);
       console.log(
         `[WS] Injected ${mcpTools.length} MCP tools for room ${roomId}`
       );
