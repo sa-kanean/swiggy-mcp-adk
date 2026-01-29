@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Swiggy Cupid - Valentine's Taste Match</title>
+<style>
+:root {
+  --primary: #e23744;
+  --primary-dark: #c62828;
+  --pink: #fce4ec;
+  --pink-dark: #f8bbd0;
+  --bg: #fff5f5;
+  --white: #ffffff;
+  --gray-50: #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-200: #eeeeee;
+  --gray-400: #bdbdbd;
+  --gray-600: #757575;
+  --gray-800: #424242;
+  --text: #333333;
+  --shadow: 0 4px 20px rgba(226,55,68,0.12);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --radius: 16px;
+  --radius-sm: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ── Layout ── */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  box-shadow: 0 0 40px rgba(0,0,0,0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Screens ── */
+.screen {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.screen.active {
+  display: flex;
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, var(--primary) 0%, #ff6b6b 100%);
+  color: white;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+.header h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.header p {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-top: 0.2rem;
+}
+
+/* ── Home Screen ── */
+.home-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+.hero-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+.home-content h2 {
+  font-size: 1.5rem;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+.home-content .tagline {
+  color: var(--gray-600);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+.btn {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 16px rgba(226,55,68,0.3);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  margin-top: 0.75rem;
+}
+.btn-outline:hover { background: var(--pink); }
+
+.steps-mini {
+  display: flex;
+  gap: 0.75rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.step-chip {
+  background: var(--pink);
+  color: var(--primary);
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Form Screen ── */
+.form-content {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.form-content h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.3rem;
+}
+.form-content .form-sub {
+  color: var(--gray-600);
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: var(--gray-800);
+}
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-group input:focus {
+  border-color: var(--primary);
+}
+.form-actions {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.back-link {
+  display: block;
+  text-align: center;
+  margin-top: 0.75rem;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.back-link:hover { color: var(--primary); }
+
+/* ── Waiting Screen ── */
+.waiting-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+.room-code {
+  background: var(--pink);
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 1rem 2rem;
+  margin: 1rem 0;
+}
+.room-code .label {
+  font-size: 0.75rem;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.room-code .code {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+  font-family: monospace;
+}
+.copy-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.copy-btn:hover { background: var(--pink); }
+.pulse {
+  display: inline-block;
+  width: 12px; height: 12px;
+  background: var(--primary);
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+.waiting-status {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+  margin-top: 1.5rem;
+}
+
+/* ── Chat Screen ── */
+.chat-header {
+  background: linear-gradient(135deg, var(--primary) 0%, #ff6b6b 100%);
+  color: white;
+  padding: 0.9rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+.chat-header .room-tag {
+  background: rgba(255,255,255,0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  margin-left: auto;
+  font-family: monospace;
+}
+.chat-header h2 { font-size: 1.1rem; }
+
+.status-bar {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--pink);
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gray-400);
+  flex-shrink: 0;
+}
+.status-dot.done { background: #4caf50; }
+.status-dot.active { background: var(--primary); animation: pulse 1.5s ease-in-out infinite; }
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 0;
+  scroll-behavior: smooth;
+}
+
+.msg {
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+  animation: msgIn 0.25s ease-out;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.msg.agent {
+  background: var(--gray-100);
+  color: var(--text);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+.msg.user {
+  background: var(--primary);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+.msg.system {
+  align-self: center;
+  background: var(--pink);
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+.msg .sender {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2rem;
+  opacity: 0.7;
+}
+.typing-indicator {
+  align-self: flex-start;
+  padding: 0.75rem 1rem;
+  background: var(--gray-100);
+  border-radius: 16px;
+  display: none;
+}
+.typing-indicator.visible { display: flex; gap: 4px; align-items: center; }
+.typing-dot {
+  width: 7px; height: 7px;
+  background: var(--gray-400);
+  border-radius: 50%;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+.chat-input {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--gray-200);
+  background: var(--white);
+  flex-shrink: 0;
+}
+.chat-input input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: 2px solid var(--gray-200);
+  border-radius: 24px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.chat-input input:focus { border-color: var(--primary); }
+.chat-input button {
+  width: 44px; height: 44px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.chat-input button:hover { background: var(--primary-dark); }
+.chat-input button:disabled { background: var(--gray-400); cursor: not-allowed; }
+.send-icon {
+  width: 20px; height: 20px;
+  fill: white;
+}
+
+/* ── Match Result Card ── */
+.match-card {
+  background: linear-gradient(135deg, var(--pink) 0%, #fff 100%);
+  border: 2px solid var(--pink-dark);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin: 0.5rem 0;
+  text-align: center;
+  max-width: 90%;
+  align-self: center;
+  animation: msgIn 0.4s ease-out;
+}
+.match-card .score {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+.match-card .score-label {
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.match-card .recs {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.rec-btn {
+  padding: 0.6rem 1rem;
+  border: 2px solid var(--primary);
+  background: var(--white);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.rec-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* ── Responsive ── */
+@media (min-width: 481px) {
+  body { background: var(--gray-100); }
+  .app { border-left: 1px solid var(--gray-200); border-right: 1px solid var(--gray-200); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══ HOME SCREEN ═══ -->
+  <div id="screen-home" class="screen active">
+    <div class="header">
+      <h1>Swiggy Cupid</h1>
+      <p>Valentine's Couple Taste Match</p>
+    </div>
+    <div class="home-content">
+      <div class="hero-icon">&#10084;&#65039;</div>
+      <h2>Find Your Food Soulmate</h2>
+      <p class="tagline">Take a fun 6-question quiz with your partner and discover how compatible your taste buds really are!</p>
+      <div class="steps-mini">
+        <span class="step-chip">1. Quiz</span>
+        <span class="step-chip">2. Match</span>
+        <span class="step-chip">3. Eat!</span>
+      </div>
+      <button class="btn btn-primary" onclick="showScreen('create')">Start a Room</button>
+      <button class="btn btn-outline" onclick="showScreen('join')">Join a Room</button>
+    </div>
+  </div>
+
+  <!-- ═══ CREATE ROOM SCREEN ═══ -->
+  <div id="screen-create" class="screen">
+    <div class="header">
+      <h1>Create a Room</h1>
+      <p>You'll get a code to share with your partner</p>
+    </div>
+    <div class="form-content">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input id="create-name" type="text" placeholder="e.g. Alice" autocomplete="given-name">
+      </div>
+      <div class="form-group">
+        <label>Your Phone</label>
+        <input id="create-phone" type="tel" placeholder="e.g. 9876543210" autocomplete="tel">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="createRoom()">Create Room</button>
+        <a class="back-link" onclick="showScreen('home')">Back</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ JOIN ROOM SCREEN ═══ -->
+  <div id="screen-join" class="screen">
+    <div class="header">
+      <h1>Join a Room</h1>
+      <p>Enter the code your partner shared</p>
+    </div>
+    <div class="form-content">
+      <div class="form-group">
+        <label>Room Code</label>
+        <input id="join-code" type="text" placeholder="e.g. a1b2c3d4" autocomplete="off" style="text-transform:uppercase;letter-spacing:0.1em;font-family:monospace;font-size:1.2rem;text-align:center">
+      </div>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input id="join-name" type="text" placeholder="e.g. Bob" autocomplete="given-name">
+      </div>
+      <div class="form-group">
+        <label>Your Phone</label>
+        <input id="join-phone" type="tel" placeholder="e.g. 9123456780" autocomplete="tel">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="joinRoom()">Join Room</button>
+        <a class="back-link" onclick="showScreen('home')">Back</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ WAITING SCREEN ═══ -->
+  <div id="screen-waiting" class="screen">
+    <div class="header">
+      <h1>Room Created!</h1>
+      <p>Share this code with your partner</p>
+    </div>
+    <div class="waiting-content">
+      <div class="room-code">
+        <div class="label">Room Code</div>
+        <div class="code" id="waiting-code">---</div>
+      </div>
+      <button class="copy-btn" onclick="copyRoomCode()">Copy Code</button>
+      <div class="waiting-status">
+        <span class="pulse"></span>
+        Waiting for your partner to join...
+      </div>
+      <p style="margin-top:2rem;color:var(--gray-600);font-size:0.85rem">
+        You can also start chatting — Swiggy Cupid is ready!
+      </p>
+      <button class="btn btn-outline" style="margin-top:1rem;max-width:200px" onclick="enterChat()">Enter Chat</button>
+    </div>
+  </div>
+
+  <!-- ═══ CHAT SCREEN ═══ -->
+  <div id="screen-chat" class="screen">
+    <div class="chat-header">
+      <span style="font-size:1.4rem">&#128152;</span>
+      <h2>Swiggy Cupid</h2>
+      <span class="room-tag" id="chat-room-tag">---</span>
+    </div>
+    <div class="status-bar" id="status-bar">
+      <div class="status-pill"><span class="status-dot" id="status-p1"></span><span id="status-p1-text">Partner 1</span></div>
+      <div class="status-pill"><span class="status-dot" id="status-p2"></span><span id="status-p2-text">Partner 2</span></div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="typing-indicator" id="typing">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+    <div class="chat-input">
+      <input id="chat-text" type="text" placeholder="Type a message..." autocomplete="off"
+        onkeydown="if(event.key==='Enter')sendMessage()">
+      <button onclick="sendMessage()" id="send-btn">
+        <svg class="send-icon" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ──
+let state = {
+  userId: 'user_' + Math.random().toString(36).slice(2, 8),
+  roomId: null,
+  name: null,
+  ws: null,
+};
+
+// ── Navigation ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ── Create Room ──
+async function createRoom() {
+  const name = document.getElementById('create-name').value.trim();
+  const phone = document.getElementById('create-phone').value.trim();
+  if (!name || !phone) return alert('Please fill in all fields');
+
+  try {
+    const res = await fetch('/api/rooms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.userId, name, phone }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    state.roomId = data.roomId;
+    state.name = name;
+
+    document.getElementById('waiting-code').textContent = data.roomId.toUpperCase();
+    showScreen('waiting');
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+// ── Join Room ──
+async function joinRoom() {
+  const code = document.getElementById('join-code').value.trim().toLowerCase();
+  const name = document.getElementById('join-name').value.trim();
+  const phone = document.getElementById('join-phone').value.trim();
+  if (!code || !name || !phone) return alert('Please fill in all fields');
+
+  try {
+    const res = await fetch(`/api/rooms/${code}/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.userId, name, phone }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    state.roomId = data.roomId;
+    state.name = name;
+
+    enterChat();
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+// ── Copy Room Code ──
+function copyRoomCode() {
+  const code = state.roomId || '';
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Code', 1500);
+  });
+}
+
+// ── Enter Chat ──
+function enterChat() {
+  document.getElementById('chat-room-tag').textContent = state.roomId.toUpperCase();
+  showScreen('chat');
+  connectWebSocket();
+}
+
+// ── WebSocket ──
+function connectWebSocket() {
+  if (state.ws) state.ws.close();
+
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${location.host}/ws/${state.roomId}?userId=${state.userId}`;
+  const ws = new WebSocket(wsUrl);
+  state.ws = ws;
+
+  ws.onopen = () => {
+    addSystemMessage('Connected! Say hi to start the quiz.');
+    // Send an initial greeting to trigger the agent
+    ws.send(JSON.stringify({ type: 'message', text: `Hi! I'm ${state.name}, ready for the Valentine's Taste Match!` }));
+    showTyping(true);
+  };
+
+  ws.onmessage = (evt) => {
+    const data = JSON.parse(evt.data);
+
+    switch (data.type) {
+      case 'agent_message':
+        showTyping(false);
+        addAgentMessage(data.text);
+        break;
+
+      case 'partner_joined':
+        addSystemMessage(`${data.partner.name} joined the room!`);
+        break;
+
+      case 'quiz_update':
+        updateQuizStatus(data.status);
+        break;
+
+      case 'match_result':
+        showMatchResult(data);
+        break;
+
+      case 'action_chosen':
+        handleActionChosen(data);
+        break;
+
+      case 'swiggy_auth_required':
+        handleSwiggyAuthRequired(data);
+        break;
+
+      case 'swiggy_auth_complete':
+        handleSwiggyAuthComplete();
+        break;
+
+      case 'error':
+        addSystemMessage('Error: ' + data.error);
+        showTyping(false);
+        break;
+    }
+  };
+
+  ws.onclose = () => {
+    addSystemMessage('Disconnected. Refresh to reconnect.');
+  };
+
+  ws.onerror = () => {
+    addSystemMessage('Connection error. Please try again.');
+  };
+}
+
+// ── Chat Messages ──
+function addMessage(html, cls) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.innerHTML = html;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addAgentMessage(text) {
+  // Simple markdown-ish: **bold**, newlines
+  let html = escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+  addMessage('<div class="sender">Swiggy Cupid</div>' + html, 'agent');
+}
+
+function addUserMessage(text) {
+  addMessage(escapeHtml(text), 'user');
+}
+
+function addSystemMessage(text) {
+  addMessage(escapeHtml(text), 'system');
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function showTyping(visible) {
+  document.getElementById('typing').classList.toggle('visible', visible);
+  if (visible) {
+    const container = document.getElementById('messages');
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+// ── Send Message ──
+function sendMessage() {
+  const input = document.getElementById('chat-text');
+  const text = input.value.trim();
+  if (!text || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+
+  addUserMessage(text);
+  state.ws.send(JSON.stringify({ type: 'message', text }));
+  input.value = '';
+  showTyping(true);
+}
+
+// ── Quiz Status ──
+function updateQuizStatus(status) {
+  const p1Dot = document.getElementById('status-p1');
+  const p2Dot = document.getElementById('status-p2');
+  const p1Text = document.getElementById('status-p1-text');
+  const p2Text = document.getElementById('status-p2-text');
+
+  p1Dot.className = 'status-dot' + (status.partner1Complete ? ' done' : ' active');
+  p1Text.textContent = status.partner1Complete ? 'P1 Done' : 'P1 In Progress';
+  p2Dot.className = 'status-dot' + (status.partner2Complete ? ' done' : status.partner1Complete ? ' active' : '');
+  p2Text.textContent = status.partner2Complete ? 'P2 Done' : 'P2 Waiting';
+}
+
+// ── Match Result ──
+function showMatchResult(data) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'match-card';
+  div.innerHTML = `
+    <div class="score-label">Taste Compatibility</div>
+    <div class="score">${data.compatibility}%</div>
+    <div class="recs">
+      ${(data.recommendations || []).map(r => `
+        <button class="rec-btn" onclick="chooseOption('${r.type}')">${r.title}</button>
+      `).join('')}
+    </div>
+  `;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function chooseOption(type) {
+  const labels = { delivery: "Let's order in!", dineout: "Let's dine out!", cook: "Let's cook together!" };
+  const text = labels[type] || "Let's go with " + type;
+  const input = document.getElementById('chat-text');
+  input.value = text;
+  sendMessage();
+}
+
+function handleActionChosen(data) {
+  const actionLabels = { delivery: 'Order In', dineout: 'Dine Out', cook: 'Cook Together' };
+  const label = actionLabels[data.action] || data.action;
+  const isMine = data.chosenBy === state.name;
+  const msg = isMine
+    ? `You chose ${label}! Let's find the perfect meal for you two.`
+    : `${data.chosenBy} chose ${label}! Let's find the perfect meal for you two.`;
+  addSystemMessage(msg);
+
+  // Disable and hide all recommendation buttons
+  document.querySelectorAll('.rec-btn').forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+  });
+}
+
+// ── Swiggy OAuth Flow ──
+function handleSwiggyAuthRequired(data) {
+  showTyping(false);
+  // Add a system message with a "Connect Swiggy" button
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg system';
+  div.style.maxWidth = '90%';
+  div.innerHTML = `
+    <div style="text-align:center">
+      <p style="margin-bottom:0.75rem;font-weight:600">Connect your Swiggy account to continue</p>
+      <button onclick="openSwiggyAuth('${escapeHtml(data.authUrl)}')"
+        style="background:var(--primary);color:white;border:none;border-radius:12px;
+               padding:0.7rem 1.5rem;font-size:0.95rem;font-weight:600;cursor:pointer;
+               box-shadow:0 4px 16px rgba(226,55,68,0.3);transition:all 0.2s"
+        onmouseover="this.style.background='var(--primary-dark)'"
+        onmouseout="this.style.background='var(--primary)'"
+        id="swiggy-auth-btn">
+        Connect Swiggy
+      </button>
+    </div>
+  `;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function openSwiggyAuth(authUrl) {
+  // Open in a popup window
+  const popup = window.open(authUrl, 'swiggy_auth', 'width=500,height=700,scrollbars=yes');
+
+  // Listen for the completion message from the popup
+  window.addEventListener('message', function onMsg(evt) {
+    if (evt.data && evt.data.type === 'swiggy_auth_complete') {
+      window.removeEventListener('message', onMsg);
+      // The WebSocket will also receive the swiggy_auth_complete event
+    }
+  });
+
+  // Update the button to show waiting state
+  const btn = document.getElementById('swiggy-auth-btn');
+  if (btn) {
+    btn.textContent = 'Waiting for login...';
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+  }
+}
+
+function handleSwiggyAuthComplete() {
+  showTyping(false);
+  addSystemMessage('Connected to Swiggy! Starting your food experience...');
+  showTyping(true);
+
+  // Remove or disable the auth button if still present
+  const btn = document.getElementById('swiggy-auth-btn');
+  if (btn) {
+    btn.textContent = 'Connected!';
+    btn.disabled = true;
+    btn.style.background = '#4caf50';
+    btn.style.opacity = '1';
+  }
+}
+
+// ── Auto-fill room code from URL hash ──
+if (location.hash.startsWith('#room=')) {
+  const code = location.hash.slice(6);
+  document.getElementById('join-code').value = code;
+  showScreen('join');
+}
+</script>
+</body>
+</html>
