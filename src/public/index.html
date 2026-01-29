@@ -412,57 +412,88 @@ body {
 }
 
 /* ── Chat Screen ── */
+#screen-chat { background: var(--bg); }
+
+/* ── Nav bar (Apple-style) ── */
 .chat-header {
-  background: #FC8019;
-  color: white;
-  padding: 0.9rem 1.25rem;
-  padding-top: calc(env(safe-area-inset-top, 0px) + 0.9rem);
+  background: rgba(255,255,255,0.92);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  color: var(--text);
+  padding: 12px 16px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 2px;
   flex-shrink: 0;
+  border-bottom: 0.5px solid rgba(0,0,0,0.12);
+  z-index: 10;
+}
+.chat-header-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  margin-bottom: 2px;
+}
+.chat-header-info { text-align: center; }
+.chat-header-info h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.chat-header-info span {
+  font-size: 11px;
+  color: var(--text-lighter);
+  letter-spacing: 0.01em;
 }
 .chat-header .room-tag {
-  background: rgba(255,255,255,0.2);
-  padding: 0.2rem 0.6rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  margin-left: auto;
-  font-family: monospace;
+  display: none;
 }
-.chat-header h2 { font-size: 1.1rem; }
 
+/* ── Status bar ── */
 .status-bar {
   display: flex;
-  gap: 0.75rem;
-  padding: 0.6rem 1.25rem;
-  background: var(--primary-light);
-  font-size: 0.78rem;
+  justify-content: center;
+  gap: 20px;
+  padding: 8px 16px;
+  background: var(--white);
+  font-size: 13px;
+  color: var(--text-light);
   flex-shrink: 0;
   overflow-x: auto;
+  border-bottom: 0.5px solid rgba(0,0,0,0.08);
 }
 .status-pill {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 6px;
   white-space: nowrap;
+  font-weight: 500;
+}
+.status-pill .status-emoji {
+  font-size: 16px;
+  line-height: 1;
 }
 .status-dot {
-  width: 8px; height: 8px;
+  width: 7px; height: 7px;
   border-radius: 50%;
   background: var(--border);
   flex-shrink: 0;
 }
 .status-dot.done { background: var(--green); }
-.status-dot.active { background: var(--primary); animation: pulse 1.5s ease-in-out infinite; }
+.status-dot.active { background: var(--green); animation: pulse 1.5s ease-in-out infinite; }
 
+/* ── Messages ── */
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 10px;
   min-height: 0;
   scroll-behavior: smooth;
   background: var(--bg);
@@ -471,98 +502,154 @@ body {
 }
 
 .msg {
-  max-width: 85%;
-  padding: 0.75rem 1rem;
+  max-width: 78%;
+  padding: 8px 14px;
   border-radius: 18px;
-  font-size: 0.92rem;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
   word-wrap: break-word;
-  animation: msgIn 0.25s ease-out;
+  animation: msgIn 0.2s ease-out;
 }
 @keyframes msgIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Agent (received) – iMessage style */
 .msg.agent {
   background: var(--white);
   color: var(--text);
   align-self: flex-start;
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border-bottom-left-radius: 6px;
+  padding: 12px 16px;
+  display: block;
+  box-shadow: 0 0.5px 1px rgba(0,0,0,0.06);
 }
+.msg.agent .agent-avatar { display: none; }
+.msg.agent .agent-body { min-width: 0; }
+.msg.agent .agent-body .sender {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 3px;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 1;
+}
+.msg.agent .agent-body .agent-text {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+/* User (sent) */
 .msg.user {
+  max-width: 78%;
   background: var(--primary);
   color: white;
   align-self: flex-end;
-  border-bottom-right-radius: 4px;
-}
-.msg.system {
-  align-self: center;
-  background: var(--primary-light);
-  color: var(--primary);
-  font-size: 0.82rem;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-}
-.msg .sender {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.2rem;
-  opacity: 0.7;
-}
-.typing-indicator {
-  align-self: flex-start;
-  padding: 0.75rem 1rem;
-  background: var(--white);
+  padding: 10px 16px;
   border-radius: 18px;
-  display: none;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  margin: 0 1rem 0.5rem;
-}
-.typing-indicator.visible { display: flex; gap: 4px; align-items: center; }
-.typing-dot {
-  width: 7px; height: 7px;
-  background: var(--text-lighter);
-  border-radius: 50%;
-  animation: typingBounce 1.4s ease-in-out infinite;
-}
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes typingBounce {
-  0%, 60%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-6px); }
+  border-bottom-right-radius: 6px;
+  font-size: 15px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
 }
 
+/* System */
+.msg.system {
+  align-self: center;
+  max-width: 85%;
+  background: none;
+  color: var(--text-lighter);
+  font-size: 13px;
+  font-weight: 400;
+  padding: 6px 0;
+  border-radius: 0;
+  text-align: center;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.msg .sender {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 3px;
+}
+
+/* ── Typing indicator (between messages and input) ── */
+.typing-indicator {
+  display: none;
+  padding: 6px 20px;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.typing-indicator.visible { display: flex; }
+.typing-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--white);
+  border-radius: 18px;
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 0.5px 1px rgba(0,0,0,0.06);
+}
+.typing-dot {
+  width: 6px; height: 6px;
+  background: var(--text-lighter);
+  border-radius: 50%;
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ── Compose bar (Apple-style frosted) ── */
 .chat-input {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.6rem);
-  border-top: 1px solid var(--border);
-  background: var(--white);
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 16px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  background: rgba(255,255,255,0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-top: 0.5px solid rgba(0,0,0,0.1);
   flex-shrink: 0;
 }
 .chat-input input {
   flex: 1;
-  padding: 0.65rem 1rem;
-  min-height: 44px;
-  border: 1.5px solid var(--border);
-  border-radius: 24px;
+  padding: 10px 18px;
+  min-height: 40px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 20px;
   font-family: inherit;
-  font-size: 16px; /* prevents iOS zoom */
+  font-size: 16px;
   color: var(--text);
+  background: var(--bg);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.2s;
   -webkit-appearance: none;
   appearance: none;
+  letter-spacing: -0.01em;
 }
-.chat-input input:focus { border-color: var(--primary); }
-.chat-input input::placeholder { color: var(--text-lighter); }
+.chat-input input:focus {
+  border-color: var(--primary);
+  background: var(--white);
+}
+.chat-input input::placeholder {
+  color: var(--text-lighter);
+  font-size: 15px;
+}
 .chat-input button {
-  width: 44px; height: 44px;
+  width: 40px; height: 40px;
   border: none;
   background: var(--primary);
   color: white;
@@ -572,15 +659,11 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.15s;
+  transition: all 0.15s;
   -webkit-appearance: none;
 }
-.chat-input button:active { background: var(--primary-dark); }
+.chat-input button:active { transform: scale(0.92); }
 .chat-input button:disabled { background: var(--border); cursor: not-allowed; }
-.send-icon {
-  width: 20px; height: 20px;
-  fill: white;
-}
 
 /* ── Match Result Card ── */
 .match-card {
@@ -705,6 +788,10 @@ body {
           <label>Your Phone</label>
           <input id="create-phone" type="tel" placeholder="e.g. 9876543210" autocomplete="tel">
         </div>
+        <div class="form-group">
+          <label>Partner's Name</label>
+          <input id="create-partner" type="text" placeholder="e.g. Bob" autocomplete="off">
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="createRoom()">Create Room</button>
@@ -777,25 +864,31 @@ body {
   <!-- ═══ CHAT SCREEN ═══ -->
   <div id="screen-chat" class="screen">
     <div class="chat-header">
-      <img src="/swiggy-logo.png" alt="Swiggy" style="width:32px;height:32px;border-radius:8px">
-      <h2>Swiggy Cupid</h2>
+      <img src="/swiggy-logo.png" alt="Swiggy" class="chat-header-logo">
+      <div class="chat-header-info">
+        <h2>Swiggy Cupid</h2>
+        <span>Valentine's Taste Match</span>
+      </div>
       <span class="room-tag" id="chat-room-tag">---</span>
     </div>
     <div class="status-bar" id="status-bar">
-      <div class="status-pill"><span class="status-dot" id="status-p1"></span><span id="status-p1-text">Partner 1</span></div>
-      <div class="status-pill"><span class="status-dot" id="status-p2"></span><span id="status-p2-text">Partner 2</span></div>
+      <div class="status-pill"><span class="material-icons-round" style="font-size:18px;color:var(--primary)">woman</span><span class="status-dot" id="status-p1"></span><span id="status-p1-text">You</span></div>
+      <div class="status-pill"><span class="material-icons-round" style="font-size:18px;color:var(--primary)">favorite</span></div>
+      <div class="status-pill"><span class="material-icons-round" style="font-size:18px;color:var(--primary)">man</span><span class="status-dot" id="status-p2"></span><span id="status-p2-text">Partner</span></div>
     </div>
     <div class="messages" id="messages"></div>
     <div class="typing-indicator" id="typing">
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
     </div>
     <div class="chat-input">
       <input id="chat-text" type="text" placeholder="Type a message..." autocomplete="off"
         onkeydown="if(event.key==='Enter')sendMessage()">
       <button onclick="sendMessage()" id="send-btn">
-        <svg class="send-icon" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        <span class="material-icons-round" style="font-size:20px;color:white">send</span>
       </button>
     </div>
   </div>
@@ -808,6 +901,7 @@ let state = {
   userId: 'user_' + Math.random().toString(36).slice(2, 8),
   roomId: null,
   name: null,
+  partnerName: null,
   ws: null,
 };
 
@@ -834,6 +928,7 @@ async function createRoom() {
 
     state.roomId = data.roomId;
     state.name = name;
+    state.partnerName = document.getElementById('create-partner').value.trim() || 'Partner';
 
     document.getElementById('waiting-code').textContent = data.roomId.toUpperCase();
     showScreen('waiting');
@@ -880,6 +975,8 @@ function copyRoomCode() {
 // ── Enter Chat ──
 function enterChat() {
   document.getElementById('chat-room-tag').textContent = state.roomId.toUpperCase();
+  document.getElementById('status-p1-text').textContent = state.name || 'You';
+  document.getElementById('status-p2-text').textContent = state.partnerName || 'Partner';
   showScreen('chat');
   connectWebSocket();
 }
@@ -910,6 +1007,8 @@ function connectWebSocket() {
         break;
 
       case 'partner_joined':
+        state.partnerName = data.partner.name;
+        document.getElementById('status-p2-text').textContent = data.partner.name;
         addSystemMessage(`${data.partner.name} joined the room!`);
         break;
 
@@ -964,7 +1063,11 @@ function addAgentMessage(text) {
   let html = escapeHtml(text)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br>');
-  addMessage('<div class="sender">Swiggy Cupid</div>' + html, 'agent');
+  addMessage(
+    '<img src="/swiggy-logo.png" alt="" class="agent-avatar">' +
+    '<div class="agent-body"><div class="sender">Swiggy Cupid</div><div class="agent-text">' + html + '</div></div>',
+    'agent'
+  );
 }
 
 function addUserMessage(text) {
@@ -1005,13 +1108,10 @@ function sendMessage() {
 function updateQuizStatus(status) {
   const p1Dot = document.getElementById('status-p1');
   const p2Dot = document.getElementById('status-p2');
-  const p1Text = document.getElementById('status-p1-text');
-  const p2Text = document.getElementById('status-p2-text');
 
   p1Dot.className = 'status-dot' + (status.partner1Complete ? ' done' : ' active');
-  p1Text.textContent = status.partner1Complete ? 'P1 Done' : 'P1 In Progress';
   p2Dot.className = 'status-dot' + (status.partner2Complete ? ' done' : status.partner1Complete ? ' active' : '');
-  p2Text.textContent = status.partner2Complete ? 'P2 Done' : 'P2 Waiting';
+  // Names stay as set — don't overwrite with P1/P2
 }
 
 // ── Match Result ──
