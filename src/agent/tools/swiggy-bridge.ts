@@ -121,19 +121,36 @@ export async function disconnectMCP(roomId: string): Promise<void> {
 /**
  * Convert a JSON Schema object to a Gemini-compatible Schema.
  * The Gemini API accepts a subset of JSON Schema.
+ *
+ * Handles edge cases like:
+ * - type as array: ["string", "null"] → "STRING" (nullable)
+ * - missing type (e.g. allOf/anyOf/oneOf compositions)
+ * - nested properties and items
  */
 function convertToGeminiSchema(
   jsonSchema: Record<string, unknown> | undefined
 ): Schema | undefined {
   if (!jsonSchema) return undefined;
 
-  // Gemini Schema is essentially JSON Schema with type mapped to uppercase enums
-  // The @google/genai SDK handles the conversion internally when passed a plain object
-  // that looks like JSON Schema. We just need to ensure it has the right shape.
   const schema: Record<string, unknown> = {};
 
+  // Handle type — may be string, array, or missing
   if (jsonSchema.type) {
-    schema.type = (jsonSchema.type as string).toUpperCase();
+    if (typeof jsonSchema.type === "string") {
+      schema.type = jsonSchema.type.toUpperCase();
+    } else if (Array.isArray(jsonSchema.type)) {
+      // e.g. ["string", "null"] → pick the first non-null type
+      const nonNull = jsonSchema.type.filter(
+        (t: string) => t !== "null"
+      );
+      schema.type = nonNull.length > 0
+        ? (nonNull[0] as string).toUpperCase()
+        : "STRING";
+      // Mark as nullable if "null" was in the array
+      if (jsonSchema.type.includes("null")) {
+        schema.nullable = true;
+      }
+    }
   }
 
   if (jsonSchema.properties) {
@@ -143,8 +160,10 @@ function convertToGeminiSchema(
       Record<string, unknown>
     >;
     for (const [key, value] of Object.entries(props)) {
-      (schema.properties as Record<string, unknown>)[key] =
-        convertToGeminiSchema(value);
+      const converted = convertToGeminiSchema(value);
+      if (converted) {
+        (schema.properties as Record<string, unknown>)[key] = converted;
+      }
     }
   }
 
@@ -164,6 +183,11 @@ function convertToGeminiSchema(
 
   if (jsonSchema.enum) {
     schema.enum = jsonSchema.enum;
+  }
+
+  // Default to OBJECT if there are properties but no explicit type
+  if (!schema.type && schema.properties) {
+    schema.type = "OBJECT";
   }
 
   return schema as Schema;
