@@ -4,6 +4,8 @@ export interface Partner {
   phone: string;
   quizAnswers: QuizAnswer[];
   quizComplete: boolean;
+  photoData: string | null;
+  photoMimeType: string | null;
 }
 
 export interface QuizAnswer {
@@ -40,6 +42,7 @@ export interface Room {
   createdAt: number;
   chosenAction: "delivery" | "dineout" | "cook" | null;
   chosenBy: string | null; // userId of who chose
+  cartoonImageBase64: string | null;
 }
 
 // WebSocket message types
@@ -58,6 +61,7 @@ export interface WSServerMessage {
     | "action_chosen"
     | "swiggy_auth_required"
     | "swiggy_auth_complete"
+    | "photo_uploaded"
     | "error";
   text?: string;
   partner?: { name: string };
@@ -68,6 +72,8 @@ export interface WSServerMessage {
   action?: string; // "delivery" | "dineout" | "cook"
   chosenBy?: string; // name of who chose
   authUrl?: string; // OAuth authorization URL for Swiggy
+  cartoonImage?: string; // base64 data URL for cartoon couple image
+  photoUser?: string; // name of user who uploaded photo
 }
 
 // Quiz question definition

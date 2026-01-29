@@ -16,6 +16,8 @@ class RoomService {
         phone,
         quizAnswers: [],
         quizComplete: false,
+        photoData: null,
+        photoMimeType: null,
       },
       partner2: null,
       matchResult: null,
@@ -23,6 +25,7 @@ class RoomService {
       createdAt: Date.now(),
       chosenAction: null,
       chosenBy: null,
+      cartoonImageBase64: null,
     };
 
     this.rooms.set(roomId, room);
@@ -52,6 +55,8 @@ class RoomService {
       phone,
       quizAnswers: [],
       quizComplete: false,
+      photoData: null,
+      photoMimeType: null,
     };
 
     return { room };

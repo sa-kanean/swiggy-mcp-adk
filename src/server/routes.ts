@@ -2,7 +2,7 @@ import { Router } from "express";
 import { roomService } from "../services/room.js";
 import { validateRoomCreate, validateRoomJoin } from "./middleware.js";
 import { exchangeCode } from "../auth/swiggy-oauth.js";
-import { getNotifyAuthComplete } from "./websocket.js";
+import { getNotifyAuthComplete, getNotifyPhotoUploaded } from "./websocket.js";
 
 export const router = Router();
 export const authCallbackRouter = Router();
@@ -77,6 +77,45 @@ router.post("/rooms/:roomId/join", validateRoomJoin, (req, res) => {
       : null,
     wsUrl: `/ws/${room.roomId}`,
   });
+});
+
+// Upload photo for a partner
+router.post("/rooms/:roomId/photo", (req, res) => {
+  const roomId = req.params.roomId as string;
+  const { userId, photoData, mimeType } = req.body;
+
+  if (!userId || !photoData || !mimeType) {
+    res.status(400).json({ error: "Missing userId, photoData, or mimeType" });
+    return;
+  }
+
+  const room = roomService.getRoom(roomId);
+  if (!room) {
+    res.status(404).json({ error: "Room not found" });
+    return;
+  }
+
+  if (!roomService.isUserInRoom(room, userId)) {
+    res.status(403).json({ error: "User not in this room" });
+    return;
+  }
+
+  const partner = roomService.getPartner(room, userId);
+  if (!partner) {
+    res.status(404).json({ error: "Partner not found" });
+    return;
+  }
+
+  partner.photoData = photoData;
+  partner.photoMimeType = mimeType;
+
+  // Notify via WebSocket
+  const notify = getNotifyPhotoUploaded();
+  if (notify) {
+    void notify(roomId, userId);
+  }
+
+  res.json({ success: true, message: "Photo uploaded" });
 });
 
 // OAuth callback from Swiggy — receives ?code=X&state=ROOM_ID

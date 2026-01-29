@@ -1,6 +1,7 @@
 import { LlmAgent, BaseTool, BaseToolset } from "@google/adk";
 import { quizTools } from "./tools/quiz.js";
 import { matchingTools } from "./tools/matching.js";
+import { photoTools } from "./tools/photo.js";
 import { getAgentInstructions } from "./instructions.js";
 
 type ToolUnion = BaseTool | BaseToolset;
@@ -12,13 +13,13 @@ type ToolUnion = BaseTool | BaseToolset;
 export let agentTools: ToolUnion[] = [];
 
 export async function createValentineAgent(): Promise<LlmAgent> {
-  agentTools = [...quizTools, ...matchingTools];
+  agentTools = [...quizTools, ...matchingTools, ...photoTools];
 
   const agent = new LlmAgent({
     name: "swiggy_cupid",
     description:
       "Swiggy Cupid — Valentine's Day food matchmaker that helps couples discover their taste compatibility and plan the perfect meal together.",
-    model: "gemini-2.5-pro",
+    model: "gemini-3-flash-preview",
     instruction: getAgentInstructions(),
     tools: agentTools,
   });

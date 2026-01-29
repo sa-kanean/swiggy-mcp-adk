@@ -10,6 +10,7 @@ import { runWithContext, setCurrentContext } from "../agent/tools/context.js";
 import { getAuthorizationUrl, hasTokens, getTokens } from "../auth/swiggy-oauth.js";
 import { connectMCP, disconnectMCP } from "../agent/tools/swiggy-bridge.js";
 import { agentTools } from "../agent/agent.js";
+import { generateCartoonCouple } from "../services/cartoon.js";
 
 // ─────────────────────────────────────────────────────────────
 // Architecture:
@@ -45,6 +46,9 @@ interface PendingAction {
   ws: WebSocket;
 }
 const pendingActions = new Map<string, PendingAction>();
+
+// Track in-flight cartoon generation per room
+const cartoonPromises = new Map<string, Promise<string | null>>();
 
 export function setupWebSocket(
   server: Server,
@@ -96,51 +100,52 @@ export function setupWebSocket(
     const actionType = ACTION_MAP[text];
     if (actionType) {
       if (room.chosenAction) {
-        // Already locked — inform the sender and continue to agent
+        // Already locked — inform the sender but DON'T return;
+        // let the message flow to the agent so it has context
         const label = ACTION_LABELS[room.chosenAction];
         sendToClient(senderWs, {
           type: "agent_message",
           text: `Your partner already chose ${label}! Let's go with that.`,
         });
-        return;
-      }
+        // Fall through to agent processing with context injection
+      } else {
+        // Lock the action
+        room.chosenAction = actionType;
+        room.chosenBy = userId;
 
-      // Lock the action
-      room.chosenAction = actionType;
-      room.chosenBy = userId;
+        // Broadcast action_chosen to both partners
+        broadcastToRoom(roomId, {
+          type: "action_chosen",
+          action: actionType,
+          chosenBy: senderName,
+        });
 
-      // Broadcast action_chosen to both partners
-      broadcastToRoom(roomId, {
-        type: "action_chosen",
-        action: actionType,
-        chosenBy: senderName,
-      });
-
-      // ── Check if we need OAuth ──
-      if (!hasTokens(roomId)) {
-        try {
-          const authUrl = await getAuthorizationUrl(roomId);
-          // Store the pending action so we can resume after auth
-          pendingActions.set(roomId, { userId, text, ws: senderWs });
-          // Send auth_required event to all clients in the room
-          broadcastToRoom(roomId, {
-            type: "swiggy_auth_required",
-            authUrl,
-          });
-          console.log(`[WS] Auth required for room ${roomId}, sent auth URL`);
-          return;
-        } catch (err: any) {
-          console.error("[WS] Failed to generate auth URL:", err);
-          sendToClient(senderWs, {
-            type: "error",
-            error: "Failed to start Swiggy authentication. Please try again.",
-          });
-          return;
+        // ── Check if we need OAuth ──
+        if (!hasTokens(roomId)) {
+          try {
+            const authUrl = await getAuthorizationUrl(roomId);
+            // Store the pending action so we can resume after auth
+            pendingActions.set(roomId, { userId, text, ws: senderWs });
+            // Send auth_required event to all clients in the room
+            broadcastToRoom(roomId, {
+              type: "swiggy_auth_required",
+              authUrl,
+            });
+            console.log(`[WS] Auth required for room ${roomId}, sent auth URL`);
+            return;
+          } catch (err: any) {
+            console.error("[WS] Failed to generate auth URL:", err);
+            sendToClient(senderWs, {
+              type: "error",
+              error: "Failed to start Swiggy authentication. Please try again.",
+            });
+            return;
+          }
         }
-      }
 
-      // Already authed — connect MCP and continue
-      await connectAndInjectTools(roomId, actionType);
+        // Already authed — connect MCP and continue
+        await connectAndInjectTools(roomId, actionType);
+      }
     }
 
     // Run entire processing inside AsyncLocalStorage context
@@ -170,15 +175,28 @@ export function setupWebSocket(
         });
       }
 
-      const userContent: Content = {
-        role: "user",
-        parts: [{ text }],
-      };
-
       try {
         // Re-read room to get latest chosenAction state
         const currentRoom = roomService.getRoom(roomId);
         const postAction = currentRoom?.chosenAction !== null;
+
+        // Inject context so the agent knows about match result + chosen action
+        let messageText = text;
+        if (postAction && currentRoom) {
+          const compat = currentRoom.matchResult?.compatibility;
+          const action = currentRoom.chosenAction;
+          const actionLabels: Record<string, string> = { delivery: "Order In", dineout: "Dine Out", cook: "Cook Together" };
+          const actionLabel = actionLabels[action!] ?? action;
+          const otherPartner = currentRoom.partner1.userId === userId
+            ? currentRoom.partner2?.name
+            : currentRoom.partner1.name;
+          messageText = `[SYSTEM CONTEXT: The match result has been revealed — compatibility is ${compat}%. The couple chose "${actionLabel}". You now have Swiggy MCP tools available. Help ${senderName} and ${otherPartner} with their ${actionLabel} experience. Use the available Swiggy tools to search restaurants, browse menus, or help them. Do NOT re-ask quiz questions or talk about suspense.]\n\nUser message: ${text}`;
+        }
+
+        const userContent: Content = {
+          role: "user",
+          parts: [{ text: messageText }],
+        };
 
         for await (const event of runner.runAsync({
           userId: userId,
@@ -217,36 +235,8 @@ export function setupWebSocket(
           status: { partner1Complete: p1Complete, partner2Complete: p2Complete },
         });
 
-        // If both partners just completed the quiz, calculate match
-        if (p1Complete && p2Complete && !matchSent.has(roomId)) {
-          matchSent.add(roomId);
-
-          const { calculateMatchTool } = await import("../agent/tools/matching.js");
-          const matchResult = await calculateMatchTool.runAsync({
-            args: {},
-            toolContext: {} as any,
-          });
-
-          const result = matchResult as any;
-          if (result && !result.error) {
-            // Broadcast the match_result event (UI card) to both
-            broadcastToRoom(roomId, {
-              type: "match_result",
-              compatibility: result.compatibility,
-              recommendations: updated.matchResult?.recommendations ?? [],
-            });
-
-            // Send personalized reveal + next-step messages to each partner
-            const p1 = updated.partner1;
-            const p2 = updated.partner2!;
-            const compat = result.compatibility;
-            const breakdown: Array<{ category: string; partner1: string; partner2: string; matchScore: number }> =
-              result.breakdown ?? [];
-
-            sendPersonalizedReveal(roomId, p1, p2, compat, breakdown);
-            sendPersonalizedReveal(roomId, p2, p1, compat, breakdown);
-          }
-        }
+        // Try to generate match + cartoon if conditions are met
+        await tryGenerateAndBroadcastMatch(roomId);
       } catch (err) {
         console.error("[WS] Error processing message:", err);
         sendToClient(senderWs, {
@@ -256,6 +246,124 @@ export function setupWebSocket(
       }
     });
   }
+
+  /**
+   * Check if both quizzes are done, then calculate match and broadcast results.
+   * If cartoon was pre-generated (from photo uploads), include it.
+   */
+  async function tryGenerateAndBroadcastMatch(roomId: string): Promise<void> {
+    const room = roomService.getRoom(roomId);
+    if (!room) return;
+
+    const p1Complete = room.partner1.quizComplete;
+    const p2Complete = room.partner2?.quizComplete ?? false;
+
+    if (!p1Complete || !p2Complete || matchSent.has(roomId)) {
+      return;
+    }
+
+    matchSent.add(roomId);
+
+    const { calculateMatchTool } = await import("../agent/tools/matching.js");
+    const matchResult = await calculateMatchTool.runAsync({
+      args: {},
+      toolContext: {} as any,
+    });
+
+    const result = matchResult as any;
+    if (result && !result.error) {
+      const compat = result.compatibility;
+
+      // Wait for pre-generated cartoon if it's in flight
+      let cartoonDataUrl: string | undefined;
+      const cartoonPromise = cartoonPromises.get(roomId);
+      if (cartoonPromise) {
+        try {
+          const cartoonBase64 = await cartoonPromise;
+          if (cartoonBase64) {
+            cartoonDataUrl = `data:image/png;base64,${cartoonBase64}`;
+          }
+        } catch {
+          // Cartoon failed — proceed without it
+        }
+      } else if (room.cartoonImageBase64) {
+        // Already completed before match
+        cartoonDataUrl = `data:image/png;base64,${room.cartoonImageBase64}`;
+      }
+
+      // Broadcast the match_result event (UI card) to both
+      broadcastToRoom(roomId, {
+        type: "match_result",
+        compatibility: compat,
+        recommendations: room.matchResult?.recommendations ?? [],
+        cartoonImage: cartoonDataUrl,
+      });
+
+      // Send personalized reveal + next-step messages to each partner
+      const p1 = room.partner1;
+      const p2 = room.partner2!;
+      const breakdown: Array<{ category: string; partner1: string; partner2: string; matchScore: number }> =
+        result.breakdown ?? [];
+
+      sendPersonalizedReveal(roomId, p1, p2, compat, breakdown);
+      sendPersonalizedReveal(roomId, p2, p1, compat, breakdown);
+    }
+  }
+
+  /**
+   * Kick off cartoon generation in the background as soon as both photos are uploaded.
+   */
+  function tryStartCartoonGeneration(roomId: string): void {
+    const room = roomService.getRoom(roomId);
+    if (!room || !room.partner2) return;
+    if (room.partner1.photoData === null || room.partner2.photoData === null) return;
+    if (cartoonPromises.has(roomId) || room.cartoonImageBase64) return; // already started or done
+
+    const p1 = room.partner1;
+    const p2 = room.partner2;
+
+    broadcastToRoom(roomId, {
+      type: "agent_message",
+      text: "Both selfies received! Generating your cartoon couple portrait in the background...",
+    });
+
+    const promise = generateCartoonCouple(
+      p1.photoData!, p1.photoMimeType!, p1.name,
+      p2.photoData!, p2.photoMimeType!, p2.name,
+      100 // placeholder — we don't know compatibility yet
+    ).then((base64) => {
+      room.cartoonImageBase64 = base64;
+      console.log(`[WS] Cartoon generated for room ${roomId}`);
+      return base64;
+    }).catch((err) => {
+      console.error("[WS] Cartoon generation failed:", err);
+      return null;
+    });
+
+    cartoonPromises.set(roomId, promise);
+  }
+
+  /**
+   * Called when a photo is uploaded via REST. Broadcasts notification and tries match.
+   */
+  async function notifyPhotoUploaded(roomId: string, userId: string): Promise<void> {
+    const room = roomService.getRoom(roomId);
+    if (!room) return;
+
+    const partner = roomService.getPartner(room, userId);
+    const name = partner?.name ?? userId;
+
+    broadcastToRoom(roomId, {
+      type: "photo_uploaded",
+      photoUser: name,
+    });
+
+    // Start cartoon generation in background as soon as both photos are in
+    tryStartCartoonGeneration(roomId);
+  }
+
+  // Expose notifyPhotoUploaded so the route handler can call it
+  (setupWebSocket as any)._notifyPhotoUploaded = notifyPhotoUploaded;
 
   /**
    * Connect MCP for the given room+action and inject tools into the agent.
@@ -369,6 +477,7 @@ export function setupWebSocket(
         if (conns.length === 0) {
           roomConnections.delete(roomId);
           matchSent.delete(roomId);
+          cartoonPromises.delete(roomId);
           // Clean up MCP connection when room empties
           void disconnectMCP(roomId);
         }
@@ -389,6 +498,14 @@ export function setupWebSocket(
  */
 export function getNotifyAuthComplete(): ((roomId: string) => Promise<void>) | undefined {
   return (setupWebSocket as any)._notifyAuthComplete;
+}
+
+/**
+ * Get the notifyPhotoUploaded function.
+ * Must be called after setupWebSocket.
+ */
+export function getNotifyPhotoUploaded(): ((roomId: string, userId: string) => Promise<void>) | undefined {
+  return (setupWebSocket as any)._notifyPhotoUploaded;
 }
 
 function broadcastToRoom(roomId: string, message: WSServerMessage): void {

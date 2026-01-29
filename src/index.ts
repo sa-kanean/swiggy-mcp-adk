@@ -38,7 +38,7 @@ async function main() {
 
   // Set up Express
   const app = express();
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
   app.use(corsMiddleware);
 
   // Auth callback at root level (redirect URI: http://localhost:3000/auth/callback)

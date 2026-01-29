@@ -734,6 +734,38 @@ body {
 }
 .chat-input button:active { transform: scale(0.92); }
 .chat-input button:disabled { background: var(--border); box-shadow: none; cursor: not-allowed; }
+.camera-btn {
+  width: 44px; height: 44px;
+  border: none;
+  background: var(--bg);
+  color: var(--text-light);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  transition: all 0.15s;
+  -webkit-appearance: none;
+}
+.camera-btn:active { transform: scale(0.92); background: var(--primary-light); color: var(--primary); }
+.camera-btn.uploaded { background: var(--green); color: white; }
+.msg.user.photo-msg { background: transparent; box-shadow: none; padding: 4px 6px; }
+.msg.user.photo-msg img {
+  max-width: 180px;
+  max-height: 180px;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  display: block;
+}
+.msg.user.photo-msg::after { display: none; }
+.match-card .cartoon-img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(252,128,25,0.2);
+}
 
 /* ── Match Result Card ── */
 .match-card {
@@ -954,7 +986,11 @@ body {
         <div class="typing-dot"></div>
       </div>
     </div>
+    <input type="file" id="photo-file-input" accept="image/*" capture="user" style="display:none" onchange="handlePhotoSelected(event)">
     <div class="chat-input">
+      <button class="camera-btn" onclick="triggerPhotoUpload()" id="camera-btn" title="Upload selfie">
+        <span class="material-icons-round" style="font-size:20px">photo_camera</span>
+      </button>
       <input id="chat-text" type="text" placeholder="Type a message..." autocomplete="off"
         onkeydown="if(event.key==='Enter')sendMessage()">
       <button onclick="sendMessage()" id="send-btn">
@@ -1092,6 +1128,10 @@ function connectWebSocket() {
 
       case 'action_chosen':
         handleActionChosen(data);
+        break;
+
+      case 'photo_uploaded':
+        addSystemMessage((data.photoUser || 'Someone') + ' uploaded their selfie!');
         break;
 
       case 'swiggy_auth_required':
@@ -1232,7 +1272,11 @@ function showMatchResult(data) {
   const container = document.getElementById('messages');
   const div = document.createElement('div');
   div.className = 'match-card';
+  const cartoonHtml = data.cartoonImage
+    ? `<img class="cartoon-img" src="${data.cartoonImage}" alt="Your cartoon couple portrait">`
+    : '';
   div.innerHTML = `
+    ${cartoonHtml}
     <div class="score-label">Taste Compatibility</div>
     <div class="score">${data.compatibility}%</div>
     <div class="recs">
@@ -1330,6 +1374,73 @@ function handleSwiggyAuthComplete() {
     btn.style.background = '#60B246';
     btn.style.opacity = '1';
   }
+}
+
+// ── Photo Upload ──
+function triggerPhotoUpload() {
+  document.getElementById('photo-file-input').click();
+}
+
+function handlePhotoSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate size (5MB max)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Photo must be under 5MB');
+    event.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const dataUrl = e.target.result;
+    // Show preview in chat
+    addPhotoMessage(dataUrl);
+
+    // Extract base64 data (remove data:image/...;base64, prefix)
+    const base64 = dataUrl.split(',')[1];
+    const mimeType = file.type || 'image/jpeg';
+
+    try {
+      const res = await fetch(`/api/rooms/${state.roomId}/photo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: state.userId,
+          photoData: base64,
+          mimeType: mimeType,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Mark camera button as done
+      document.getElementById('camera-btn').classList.add('uploaded');
+
+      // Send message to agent about photo upload
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.send(JSON.stringify({ type: 'message', text: 'I just uploaded my selfie!' }));
+        showTyping(true);
+      }
+    } catch (err) {
+      addSystemMessage('Failed to upload photo: ' + err.message);
+    }
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function addPhotoMessage(dataUrl) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg user photo-msg';
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.alt = 'My selfie';
+  div.appendChild(img);
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
 }
 
 // ── Auto-fill room code from URL hash ──
