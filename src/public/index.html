@@ -2,45 +2,57 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Swiggy Cupid">
+<meta name="theme-color" content="#FC8019">
+<link rel="apple-touch-icon" href="/swiggy-logo.png">
 <title>Swiggy Cupid - Valentine's Taste Match</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round">
 <style>
 :root {
-  --primary: #e23744;
-  --primary-dark: #c62828;
-  --pink: #fce4ec;
-  --pink-dark: #f8bbd0;
-  --bg: #fff5f5;
-  --white: #ffffff;
-  --gray-50: #fafafa;
-  --gray-100: #f5f5f5;
-  --gray-200: #eeeeee;
-  --gray-400: #bdbdbd;
-  --gray-600: #757575;
-  --gray-800: #424242;
-  --text: #333333;
-  --shadow: 0 4px 20px rgba(226,55,68,0.12);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --primary: #FC8019;
+  --primary-dark: #E86F00;
+  --primary-light: #FFF4E6;
+  --bg: #F2F2F2;
+  --white: #FFFFFF;
+  --text: #3D4152;
+  --text-light: #7E808C;
+  --text-lighter: #93959F;
+  --border: #E9E9EB;
+  --green: #60B246;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.08);
   --radius: 16px;
   --radius-sm: 12px;
+  --radius-input: 10px;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: "Basis Grotesque Pro", "ProximaNova", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* ── Layout ── */
 .app {
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--white);
@@ -62,190 +74,321 @@ body {
 
 /* ── Header ── */
 .header {
-  background: linear-gradient(135deg, var(--primary) 0%, #ff6b6b 100%);
+  background: #FC8019;
   color: white;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.5rem;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
   text-align: center;
   flex-shrink: 0;
 }
 .header h1 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 .header p {
   font-size: 0.8rem;
-  opacity: 0.85;
-  margin-top: 0.2rem;
+  opacity: 0.9;
+  margin-top: 0.15rem;
 }
 
 /* ── Home Screen ── */
+#screen-home { background: var(--white); }
+#screen-home .header { display: none; }
 .home-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
+  padding: 0 1.5rem;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 3rem);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
   text-align: center;
 }
 .hero-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+.hero-icon img {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(252,128,25,0.25);
+}
+.home-brand {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
 }
 .home-content h2 {
-  font-size: 1.5rem;
-  color: var(--primary);
-  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 .home-content .tagline {
-  color: var(--gray-600);
-  font-size: 0.95rem;
-  margin-bottom: 2rem;
-  line-height: 1.5;
+  color: var(--text-light);
+  font-size: 0.92rem;
+  margin-bottom: 0;
+  line-height: 1.6;
+  max-width: 300px;
+}
+.home-actions {
+  margin-top: auto;
+  width: 100%;
+  max-width: 340px;
 }
 .btn {
   display: block;
   width: 100%;
   max-width: 320px;
   padding: 0.9rem 1.5rem;
+  min-height: 48px;
   border: none;
   border-radius: var(--radius-sm);
+  font-family: inherit;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   text-align: center;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .btn-primary {
   background: var(--primary);
   color: white;
-  box-shadow: 0 4px 16px rgba(226,55,68,0.3);
+  box-shadow: 0 4px 16px rgba(252,128,25,0.3);
 }
-.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
-.btn-primary:active { transform: translateY(0); }
+.btn-primary:active { background: var(--primary-dark); transform: scale(0.98); }
 .btn-outline {
   background: transparent;
   color: var(--primary);
   border: 2px solid var(--primary);
   margin-top: 0.75rem;
 }
-.btn-outline:hover { background: var(--pink); }
+.btn-outline:active { background: var(--primary-light); }
 
 .steps-mini {
   display: flex;
-  gap: 0.75rem;
-  margin: 2rem 0;
+  gap: 0.5rem;
+  margin: 1.75rem 0;
   flex-wrap: wrap;
   justify-content: center;
 }
 .step-chip {
-  background: var(--pink);
+  background: var(--primary-light);
   color: var(--primary);
-  padding: 0.4rem 0.9rem;
+  padding: 0.45rem 1rem;
   border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 0.78rem;
+  font-weight: 600;
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
 /* ── Form Screen ── */
+#screen-create, #screen-join { background: var(--white); }
+#screen-create .header, #screen-join .header { display: none; }
 .form-content {
   flex: 1;
-  padding: 1.5rem;
+  padding: 0 1.5rem;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 1.5rem);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
   display: flex;
   flex-direction: column;
+  align-items: center;
+}
+/* ── Scrolling brand marquee ── */
+.brand-marquee {
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: center;
+}
+.brand-marquee-track {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  animation: marqueeSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateX(100px);
+}
+.brand-marquee-track .brand-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+.brand-marquee-track .brand-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 16px;
+}
+@keyframes marqueeSlideIn {
+  0% { opacity: 0; transform: translateX(100px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 .form-content h2 {
-  font-size: 1.25rem;
-  margin-bottom: 0.3rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  text-align: center;
 }
 .form-content .form-sub {
-  color: var(--gray-600);
-  font-size: 0.85rem;
-  margin-bottom: 1.5rem;
+  color: var(--text-light);
+  font-size: 0.88rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.form-fields {
+  width: 100%;
 }
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
 }
 .form-group label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 0.35rem;
-  color: var(--gray-800);
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
 }
 .form-group input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--gray-200);
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
+  padding: 0.85rem 1rem;
+  min-height: 48px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-input);
+  font-family: inherit;
+  font-size: 16px; /* prevents iOS zoom on focus */
+  color: var(--text);
+  background: var(--white);
+  text-align: center;
   transition: border-color 0.2s;
   outline: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .form-group input:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(252,128,25,0.12);
+}
+.form-group input::placeholder {
+  color: var(--text-lighter);
 }
 .form-actions {
   margin-top: auto;
   padding-top: 1rem;
+  width: 100%;
+}
+.form-actions .btn {
+  max-width: 100%;
 }
 .back-link {
   display: block;
   text-align: center;
   margin-top: 0.75rem;
-  color: var(--gray-600);
+  padding: 0.5rem;
+  min-height: 44px;
+  line-height: 2;
+  color: var(--text-light);
   font-size: 0.9rem;
   cursor: pointer;
   text-decoration: none;
 }
-.back-link:hover { color: var(--primary); }
+.back-link:active { color: var(--primary); }
 
 /* ── Waiting Screen ── */
+#screen-waiting { background: var(--white); }
+#screen-waiting .header { display: none; }
 .waiting-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
+  padding: 0 1.5rem;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 3rem);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
   text-align: center;
 }
+.waiting-content .waiting-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--primary-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 1.25rem;
+}
+.waiting-content h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.3rem;
+}
+.waiting-content .waiting-sub {
+  color: var(--text-light);
+  font-size: 0.88rem;
+  margin-bottom: 1.5rem;
+}
 .room-code {
-  background: var(--pink);
+  background: var(--bg);
   border: 2px dashed var(--primary);
-  border-radius: var(--radius-sm);
-  padding: 1rem 2rem;
-  margin: 1rem 0;
+  border-radius: var(--radius);
+  padding: 1.25rem 2.5rem;
+  margin: 0;
 }
 .room-code .label {
-  font-size: 0.75rem;
-  color: var(--gray-600);
+  font-size: 0.7rem;
+  color: var(--text-lighter);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.room-code .code {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--primary);
-  letter-spacing: 0.1em;
-  font-family: monospace;
-}
-.copy-btn {
-  background: none;
-  border: none;
-  color: var(--primary);
-  font-size: 0.85rem;
-  cursor: pointer;
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
+  letter-spacing: 0.08em;
   font-weight: 600;
 }
-.copy-btn:hover { background: var(--pink); }
+.room-code .code {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 0.12em;
+  font-family: "SF Mono", "Menlo", monospace;
+  margin-top: 0.15rem;
+}
+.copy-btn {
+  background: var(--primary-light);
+  border: none;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.5rem 1.25rem;
+  min-height: 44px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+.copy-btn:active { opacity: 0.7; }
 .pulse {
   display: inline-block;
-  width: 12px; height: 12px;
+  width: 10px; height: 10px;
   background: var(--primary);
   border-radius: 50%;
   margin-right: 0.5rem;
@@ -256,16 +399,24 @@ body {
   50% { opacity: 0.5; transform: scale(1.3); }
 }
 .waiting-status {
-  font-size: 0.9rem;
-  color: var(--gray-600);
-  margin-top: 1.5rem;
+  font-size: 0.88rem;
+  color: var(--text-light);
+  margin-top: 1.75rem;
+  display: flex;
+  align-items: center;
+}
+.waiting-actions {
+  margin-top: auto;
+  width: 100%;
+  max-width: 280px;
 }
 
 /* ── Chat Screen ── */
 .chat-header {
-  background: linear-gradient(135deg, var(--primary) 0%, #ff6b6b 100%);
+  background: #FC8019;
   color: white;
   padding: 0.9rem 1.25rem;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.9rem);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -285,7 +436,7 @@ body {
   display: flex;
   gap: 0.75rem;
   padding: 0.6rem 1.25rem;
-  background: var(--pink);
+  background: var(--primary-light);
   font-size: 0.78rem;
   flex-shrink: 0;
   overflow-x: auto;
@@ -299,27 +450,30 @@ body {
 .status-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: var(--gray-400);
+  background: var(--border);
   flex-shrink: 0;
 }
-.status-dot.done { background: #4caf50; }
+.status-dot.done { background: var(--green); }
 .status-dot.active { background: var(--primary); animation: pulse 1.5s ease-in-out infinite; }
 
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 1rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   min-height: 0;
   scroll-behavior: smooth;
+  background: var(--bg);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 .msg {
   max-width: 85%;
   padding: 0.75rem 1rem;
-  border-radius: 16px;
+  border-radius: 18px;
   font-size: 0.92rem;
   line-height: 1.5;
   word-wrap: break-word;
@@ -330,10 +484,11 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .msg.agent {
-  background: var(--gray-100);
+  background: var(--white);
   color: var(--text);
   align-self: flex-start;
   border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 .msg.user {
   background: var(--primary);
@@ -343,7 +498,7 @@ body {
 }
 .msg.system {
   align-self: center;
-  background: var(--pink);
+  background: var(--primary-light);
   color: var(--primary);
   font-size: 0.82rem;
   font-weight: 500;
@@ -361,14 +516,16 @@ body {
 .typing-indicator {
   align-self: flex-start;
   padding: 0.75rem 1rem;
-  background: var(--gray-100);
-  border-radius: 16px;
+  background: var(--white);
+  border-radius: 18px;
   display: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin: 0 1rem 0.5rem;
 }
 .typing-indicator.visible { display: flex; gap: 4px; align-items: center; }
 .typing-dot {
   width: 7px; height: 7px;
-  background: var(--gray-400);
+  background: var(--text-lighter);
   border-radius: 50%;
   animation: typingBounce 1.4s ease-in-out infinite;
 }
@@ -382,21 +539,28 @@ body {
 .chat-input {
   display: flex;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--gray-200);
+  padding: 0.6rem 1rem;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.6rem);
+  border-top: 1px solid var(--border);
   background: var(--white);
   flex-shrink: 0;
 }
 .chat-input input {
   flex: 1;
-  padding: 0.7rem 1rem;
-  border: 2px solid var(--gray-200);
+  padding: 0.65rem 1rem;
+  min-height: 44px;
+  border: 1.5px solid var(--border);
   border-radius: 24px;
-  font-size: 0.95rem;
+  font-family: inherit;
+  font-size: 16px; /* prevents iOS zoom */
+  color: var(--text);
   outline: none;
   transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .chat-input input:focus { border-color: var(--primary); }
+.chat-input input::placeholder { color: var(--text-lighter); }
 .chat-input button {
   width: 44px; height: 44px;
   border: none;
@@ -408,10 +572,11 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.2s;
+  transition: background 0.15s;
+  -webkit-appearance: none;
 }
-.chat-input button:hover { background: var(--primary-dark); }
-.chat-input button:disabled { background: var(--gray-400); cursor: not-allowed; }
+.chat-input button:active { background: var(--primary-dark); }
+.chat-input button:disabled { background: var(--border); cursor: not-allowed; }
 .send-icon {
   width: 20px; height: 20px;
   fill: white;
@@ -419,9 +584,10 @@ body {
 
 /* ── Match Result Card ── */
 .match-card {
-  background: linear-gradient(135deg, var(--pink) 0%, #fff 100%);
-  border: 2px solid var(--pink-dark);
+  background: var(--white);
+  border: none;
   border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   padding: 1.25rem;
   margin: 0.5rem 0;
   text-align: center;
@@ -436,7 +602,7 @@ body {
 }
 .match-card .score-label {
   font-size: 0.8rem;
-  color: var(--gray-600);
+  color: var(--text-light);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -447,25 +613,43 @@ body {
   gap: 0.5rem;
 }
 .rec-btn {
-  padding: 0.6rem 1rem;
+  padding: 0.7rem 1rem;
+  min-height: 44px;
   border: 2px solid var(--primary);
   background: var(--white);
   color: var(--primary);
   border-radius: var(--radius-sm);
+  font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
+  -webkit-appearance: none;
 }
-.rec-btn:hover {
+.rec-btn:active {
   background: var(--primary);
   color: white;
 }
 
-/* ── Responsive ── */
+/* ── iOS standalone mode ── */
+@media (display-mode: standalone) {
+  .header, .chat-header {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  }
+}
+
+/* ── Desktop ── */
 @media (min-width: 481px) {
-  body { background: var(--gray-100); }
-  .app { border-left: 1px solid var(--gray-200); border-right: 1px solid var(--gray-200); }
+  body { background: var(--bg); }
+  .app { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+}
+
+/* ── Mobile-first: full-bleed on phones ── */
+@media (max-width: 480px) {
+  .app {
+    max-width: 100%;
+    box-shadow: none;
+  }
 }
 </style>
 </head>
@@ -479,16 +663,19 @@ body {
       <p>Valentine's Couple Taste Match</p>
     </div>
     <div class="home-content">
-      <div class="hero-icon">&#10084;&#65039;</div>
-      <h2>Find Your Food Soulmate</h2>
-      <p class="tagline">Take a fun 6-question quiz with your partner and discover how compatible your taste buds really are!</p>
+      <div class="hero-icon"><img src="/swiggy-logo.png" alt="Swiggy"></div>
+      <div class="home-brand">Swiggy Cupid</div>
+      <h2>Find Your Food<br>Soulmate</h2>
+      <p class="tagline">Take a fun quiz with your partner and discover how compatible your taste buds really are!</p>
       <div class="steps-mini">
         <span class="step-chip">1. Quiz</span>
         <span class="step-chip">2. Match</span>
         <span class="step-chip">3. Eat!</span>
       </div>
-      <button class="btn btn-primary" onclick="showScreen('create')">Start a Room</button>
-      <button class="btn btn-outline" onclick="showScreen('join')">Join a Room</button>
+      <div class="home-actions">
+        <button class="btn btn-primary" onclick="showScreen('create')">Start a Room</button>
+        <button class="btn btn-outline" onclick="showScreen('join')">Join a Room</button>
+      </div>
     </div>
   </div>
 
@@ -499,17 +686,28 @@ body {
       <p>You'll get a code to share with your partner</p>
     </div>
     <div class="form-content">
-      <div class="form-group">
-        <label>Your Name</label>
-        <input id="create-name" type="text" placeholder="e.g. Alice" autocomplete="given-name">
+      <a class="back-link" onclick="showScreen('home')" style="align-self:flex-start;margin:0 0 0.75rem -0.25rem;line-height:1;min-height:auto;padding:0.25rem 0.5rem">&#8592; Back</a>
+      <div class="brand-marquee">
+        <div class="brand-marquee-track">
+          <div class="brand-icon"><img src="/swiggy-logo.png" alt="Swiggy"></div>
+          <div class="brand-icon"><img src="/instamart-logo.png" alt="Instamart"></div>
+          <div class="brand-icon"><img src="/dineout-logo.png" alt="Dineout"></div>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Your Phone</label>
-        <input id="create-phone" type="tel" placeholder="e.g. 9876543210" autocomplete="tel">
+      <h2>Create a Room</h2>
+      <p class="form-sub">You'll get a code to share with your partner</p>
+      <div class="form-fields">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input id="create-name" type="text" placeholder="e.g. Alice" autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label>Your Phone</label>
+          <input id="create-phone" type="tel" placeholder="e.g. 9876543210" autocomplete="tel">
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="createRoom()">Create Room</button>
-        <a class="back-link" onclick="showScreen('home')">Back</a>
       </div>
     </div>
   </div>
@@ -521,21 +719,32 @@ body {
       <p>Enter the code your partner shared</p>
     </div>
     <div class="form-content">
-      <div class="form-group">
-        <label>Room Code</label>
-        <input id="join-code" type="text" placeholder="e.g. a1b2c3d4" autocomplete="off" style="text-transform:uppercase;letter-spacing:0.1em;font-family:monospace;font-size:1.2rem;text-align:center">
+      <a class="back-link" onclick="showScreen('home')" style="align-self:flex-start;margin:0 0 0.75rem -0.25rem;line-height:1;min-height:auto;padding:0.25rem 0.5rem">&#8592; Back</a>
+      <div class="brand-marquee">
+        <div class="brand-marquee-track">
+          <div class="brand-icon"><img src="/swiggy-logo.png" alt="Swiggy"></div>
+          <div class="brand-icon"><img src="/instamart-logo.png" alt="Instamart"></div>
+          <div class="brand-icon"><img src="/dineout-logo.png" alt="Dineout"></div>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Your Name</label>
-        <input id="join-name" type="text" placeholder="e.g. Bob" autocomplete="given-name">
-      </div>
-      <div class="form-group">
-        <label>Your Phone</label>
-        <input id="join-phone" type="tel" placeholder="e.g. 9123456780" autocomplete="tel">
+      <h2>Join a Room</h2>
+      <p class="form-sub">Enter the code your partner shared</p>
+      <div class="form-fields">
+        <div class="form-group">
+          <label>Room Code</label>
+          <input id="join-code" type="text" placeholder="e.g. A1B2C3D4" autocomplete="off" style="text-transform:uppercase;letter-spacing:0.1em;font-family:'SF Mono','Menlo',monospace;font-size:16px;text-align:center">
+        </div>
+        <div class="form-group">
+          <label>Your Name</label>
+          <input id="join-name" type="text" placeholder="e.g. Bob" autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label>Your Phone</label>
+          <input id="join-phone" type="tel" placeholder="e.g. 9123456780" autocomplete="tel">
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="joinRoom()">Join Room</button>
-        <a class="back-link" onclick="showScreen('home')">Back</a>
       </div>
     </div>
   </div>
@@ -547,26 +756,28 @@ body {
       <p>Share this code with your partner</p>
     </div>
     <div class="waiting-content">
+      <div class="waiting-icon">&#127881;</div>
+      <h2>Room Created!</h2>
+      <p class="waiting-sub">Share this code with your partner</p>
       <div class="room-code">
         <div class="label">Room Code</div>
         <div class="code" id="waiting-code">---</div>
       </div>
-      <button class="copy-btn" onclick="copyRoomCode()">Copy Code</button>
+      <button class="copy-btn" onclick="copyRoomCode()"><span class="material-icons-round" style="font-size:18px;vertical-align:middle;margin-right:4px">content_copy</span>Copy Code</button>
       <div class="waiting-status">
         <span class="pulse"></span>
         Waiting for your partner to join...
       </div>
-      <p style="margin-top:2rem;color:var(--gray-600);font-size:0.85rem">
-        You can also start chatting — Swiggy Cupid is ready!
-      </p>
-      <button class="btn btn-outline" style="margin-top:1rem;max-width:200px" onclick="enterChat()">Enter Chat</button>
+      <div class="waiting-actions">
+        <button class="btn btn-primary" onclick="enterChat()">Enter Chat</button>
+      </div>
     </div>
   </div>
 
   <!-- ═══ CHAT SCREEN ═══ -->
   <div id="screen-chat" class="screen">
     <div class="chat-header">
-      <span style="font-size:1.4rem">&#128152;</span>
+      <img src="/swiggy-logo.png" alt="Swiggy" style="width:32px;height:32px;border-radius:8px">
       <h2>Swiggy Cupid</h2>
       <span class="room-tag" id="chat-room-tag">---</span>
     </div>
@@ -860,7 +1071,7 @@ function handleSwiggyAuthRequired(data) {
       <button onclick="openSwiggyAuth('${escapeHtml(data.authUrl)}')"
         style="background:var(--primary);color:white;border:none;border-radius:12px;
                padding:0.7rem 1.5rem;font-size:0.95rem;font-weight:600;cursor:pointer;
-               box-shadow:0 4px 16px rgba(226,55,68,0.3);transition:all 0.2s"
+               box-shadow:0 4px 16px rgba(252,128,25,0.3);transition:all 0.2s"
         onmouseover="this.style.background='var(--primary-dark)'"
         onmouseout="this.style.background='var(--primary)'"
         id="swiggy-auth-btn">
@@ -903,7 +1114,7 @@ function handleSwiggyAuthComplete() {
   if (btn) {
     btn.textContent = 'Connected!';
     btn.disabled = true;
-    btn.style.background = '#4caf50';
+    btn.style.background = '#60B246';
     btn.style.opacity = '1';
   }
 }
