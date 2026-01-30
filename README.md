@@ -1,8 +1,8 @@
 # Swiggy Cupid — Valentine's Taste Match Agent
 
-A working prototype of a **couple food-matching experience** powered by Google ADK (Agent Development Kit) for JavaScript, Gemini 2.5 Pro, and Swiggy's MCP (Model Context Protocol) endpoints.
+A working prototype of a **couple food-matching experience** powered by Google ADK (Agent Development Kit) for JavaScript, Gemini 3 Flash, and Swiggy's MCP (Model Context Protocol) endpoints.
 
-Two partners join a room, take a 6-question food quiz, get a Taste Compatibility score, pick an action (Order In / Dine Out / Cook Together), authenticate with Swiggy via OAuth2+PKCE, and then the AI agent uses **real Swiggy MCP tools** (search restaurants, browse menus, build carts, etc.) to help them plan their meal.
+Two partners join a room, upload selfies, take a 6-question food quiz, get a Taste Compatibility score with a **cartoon couple portrait** (generated via Gemini), pick an action (Order In / Dine Out / Cook Together), authenticate with Swiggy via OAuth2+PKCE, and then the AI agent uses **real Swiggy MCP tools** (search restaurants, browse menus, build carts, etc.) to help them plan their meal.
 
 ---
 
@@ -37,9 +37,14 @@ Partner A creates room → gets room code → shares with Partner B
                                 ↓
 Both partners join → WebSocket connects → Agent greets each privately
                                 ↓
+     Agent asks each partner to upload a selfie (camera button)
+                                ↓
         6 food questions each (cuisine, spice, diet, budget, mood, dish)
                                 ↓
-   Both complete → Match score calculated → Compatibility card shown
+    Both photos uploaded → Cartoon couple portrait generates in background
+                                ↓
+   Both quizzes complete → Match score calculated → Compatibility card
+         shown with cartoon portrait + score + action buttons
                                 ↓
      Either partner taps "Order In" / "Dine Out" / "Cook Together"
                                 ↓
@@ -74,11 +79,12 @@ Both partners join → WebSocket connects → Agent greets each privately
 │  ┌─────────────────────▼──────────────────▼────────────────────┐   │
 │  │              Google ADK Runner                               │   │
 │  │  ┌─────────────────────────────────────────────────────┐    │   │
-│  │  │  LlmAgent "swiggy_cupid" (Gemini 2.5 Pro)          │    │   │
+│  │  │  LlmAgent "swiggy_cupid" (Gemini 3 Flash)            │    │   │
 │  │  │                                                      │    │   │
 │  │  │  Tools:                                              │    │   │
 │  │  │  ├─ start_quiz, submit_answer, get_quiz_status       │    │   │
 │  │  │  ├─ calculate_match, get_recipe                      │    │   │
+│  │  │  ├─ get_photo_status                                 │    │   │
 │  │  │  └─ [MCP tools injected after OAuth]                 │    │   │
 │  │  └─────────────────────────────────────────────────────┘    │   │
 │  └─────────────────────────────────────────────────────────────┘   │
@@ -110,7 +116,8 @@ Both partners join → WebSocket connects → Agent greets each privately
 | Layer | Technology |
 |-------|-----------|
 | **AI Agent** | [Google ADK for JavaScript](https://github.com/google/adk-node) (`@google/adk`) |
-| **LLM** | Gemini 2.5 Pro via Gemini API |
+| **LLM** | Gemini 3 Flash Preview via Gemini API |
+| **Image Generation** | Gemini 3 Pro Image Preview (cartoon couple portraits) |
 | **MCP Client** | [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol/typescript-sdk) (StreamableHTTPClientTransport) |
 | **Backend** | Node.js, Express, WebSocket (`ws`) |
 | **Frontend** | Vanilla HTML/CSS/JS (single-page app) |
@@ -123,30 +130,32 @@ Both partners join → WebSocket connects → Agent greets each privately
 
 ```
 src/
-├── index.ts                          # Express server, ADK Runner, startup
+├── index.ts                          # Express server (10mb body limit), ADK Runner, startup
 ├── models/
 │   └── types.ts                      # TypeScript interfaces, quiz questions, WS message types
 ├── server/
 │   ├── middleware.ts                  # CORS, request validation
-│   ├── routes.ts                     # REST API + OAuth callback endpoint
-│   └── websocket.ts                  # WebSocket handler, message routing, auth flow trigger
+│   ├── routes.ts                     # REST API + photo upload + OAuth callback endpoint
+│   └── websocket.ts                  # WebSocket handler, message routing, auth flow, cartoon + match orchestration
 ├── services/
-│   ├── room.ts                       # Room CRUD (in-memory)
-│   └── quiz.ts                       # Quiz logic (next question, submit, completion)
+│   ├── room.ts                       # Room CRUD (in-memory), partner photo storage
+│   ├── quiz.ts                       # Quiz logic (next question, submit, completion)
+│   └── cartoon.ts                    # Gemini 3 Pro image generation for cartoon couple portraits
 ├── auth/
 │   └── swiggy-oauth.ts              # OAuth2+PKCE: registration, auth URL, code exchange, token store
 ├── agent/
-│   ├── agent.ts                      # LlmAgent creation (Gemini 2.5 Pro)
+│   ├── agent.ts                      # LlmAgent creation (Gemini 3 Flash Preview)
 │   ├── instructions.ts               # System prompt loader
 │   ├── prompts/
-│   │   └── valentine.ts              # Full system prompt, messages, compatibility text
+│   │   └── valentine.ts              # Full system prompt (with selfie + photo status instructions)
 │   └── tools/
 │       ├── context.ts                # AsyncLocalStorage for per-request roomId/userId
 │       ├── quiz.ts                   # FunctionTools: start_quiz, submit_answer, get_quiz_status
 │       ├── matching.ts               # FunctionTools: calculate_match, get_recipe
+│       ├── photo.ts                  # FunctionTool: get_photo_status (check if both partners uploaded)
 │       └── swiggy-bridge.ts          # Per-room MCP client, tool discovery, ADK FunctionTool wrappers
 └── public/
-    └── index.html                    # Full SPA frontend (5 screens, WebSocket, OAuth popup)
+    └── index.html                    # Full SPA frontend (5 screens, camera upload, WebSocket, OAuth popup)
 ```
 
 ---
@@ -175,7 +184,7 @@ GOOGLE_GENAI_API_KEY=your_gemini_api_key_here
 PORT=3000
 ```
 
-You need a [Google AI Studio](https://aistudio.google.com/) API key with access to Gemini 2.5 Pro.
+You need a [Google AI Studio](https://aistudio.google.com/) API key with access to Gemini 3 Flash Preview and Gemini 3 Pro Image Preview.
 
 ### Run (development)
 
@@ -212,23 +221,40 @@ npm start
 
 ## How It Works — Step by Step
 
-### Phase 1: Quiz
+### Phase 1: Selfie Upload & Quiz
 
-Each partner connects via WebSocket and gets their own private ADK session (`session_{roomId}_{userId}`). The agent guides each through 6 questions using `FunctionTool` calls:
+Each partner connects via WebSocket and gets their own private ADK session (`session_{roomId}_{userId}`). The agent:
 
-1. `start_quiz` — initializes, returns Question 1
-2. `submit_answer(question_id, answer)` — records answer, returns next question
-3. After Q6, partner's quiz is marked complete
+1. Greets the partner and asks them to **upload a selfie** via the camera button
+2. Guides them through 6 food questions using `FunctionTool` calls:
+   - `start_quiz` — initializes, returns Question 1
+   - `submit_answer(question_id, answer)` — records answer, returns next question
+   - After Q6, partner's quiz is marked complete
+3. Uses `get_photo_status` to check/remind about selfie uploads
 
 Both partners can take the quiz simultaneously — no waiting. AsyncLocalStorage ensures each tool call sees the correct roomId/userId.
+
+**Photo upload flow:** User taps camera button → selects/takes photo → uploaded via `POST /api/rooms/:roomId/photo` → preview shown in chat → WebSocket notification broadcast.
+
+### Phase 1.5: Cartoon Generation (Background)
+
+As soon as **both partners upload their selfies**, the server kicks off cartoon generation in the background:
+
+1. Calls `generateCartoonCouple()` with both photos + names
+2. Uses `gemini-3-pro-image-preview` with `responseModalities: ["IMAGE", "TEXT"]`
+3. Generates an animated cartoon-style couple portrait (Valentine's themed)
+4. Stores the result on the room object, ready for the match reveal
+
+This runs in parallel with the quiz — by the time both quizzes complete, the cartoon is often already done.
 
 ### Phase 2: Match Result
 
 When both partners complete the quiz:
 1. Server calls `calculate_match` — scores each question (100 = same answer, 60 = compatible, 20 = different)
-2. Broadcasts a `match_result` WebSocket event with compatibility percentage
-3. Sends personalized recommendation messages to each partner
-4. UI shows a match card with three action buttons: Order In, Dine Out, Cook Together
+2. Waits for the pre-generated cartoon if still in flight
+3. Broadcasts a `match_result` WebSocket event with compatibility percentage + cartoon image
+4. Sends personalized recommendation messages to each partner
+5. UI shows a match card with the cartoon portrait, score, and three action buttons: Order In, Dine Out, Cook Together
 
 ### Phase 3: Swiggy OAuth
 
@@ -346,6 +372,7 @@ The Dineout (`/dineout`) and Instamart (`/im`) endpoints expose their own tool s
 | `POST` | `/api/rooms` | Create a room. Body: `{ userId, name, phone }` |
 | `GET` | `/api/rooms/:roomId` | Get room status, quiz progress, match result |
 | `POST` | `/api/rooms/:roomId/join` | Join a room. Body: `{ userId, name, phone }` |
+| `POST` | `/api/rooms/:roomId/photo` | Upload selfie. Body: `{ userId, photoData, mimeType }` (base64, max 10mb) |
 | `GET` | `/auth/callback` | OAuth redirect handler. Query: `?code=X&state=ROOM_ID` |
 | `GET` | `/health` | Health check |
 
@@ -370,7 +397,8 @@ Connect to: `ws://localhost:3000/ws/{roomId}?userId={userId}`
 | `agent_message` | `text` | Agent response (private during quiz, broadcast after action) |
 | `partner_joined` | `partner.name` | Other partner connected |
 | `quiz_update` | `status.partner1Complete`, `status.partner2Complete` | After each message |
-| `match_result` | `compatibility`, `recommendations[]` | Both quizzes done |
+| `photo_uploaded` | `photoUser` | A partner uploaded their selfie |
+| `match_result` | `compatibility`, `recommendations[]`, `cartoonImage?` | Both quizzes done |
 | `action_chosen` | `action`, `chosenBy` | Partner picks Order In / Dine Out / Cook |
 | `swiggy_auth_required` | `authUrl` | OAuth needed before MCP connection |
 | `swiggy_auth_complete` | — | OAuth done, MCP tools ready |
@@ -389,11 +417,17 @@ During the quiz, agent responses go only to the sender. After an action is chose
 ### 3. Lazy MCP Connection
 MCP tools are NOT loaded at startup. They're connected per-room after OAuth, for the specific endpoint the couple chose. This avoids 401 errors at boot and only authenticates when needed.
 
-### 4. Tool Injection at Runtime
-After MCP tools are discovered, they're pushed into the agent's shared tools array. The LLM sees them in subsequent calls and can use them naturally.
+### 4. Tool Injection at Runtime (with Deduplication)
+After MCP tools are discovered, they're pushed into the agent's shared tools array. Existing tools with the same name are replaced to avoid `"Duplicate function declaration"` errors when multiple rooms connect or reconnect. The LLM sees them in subsequent calls and can use them naturally.
 
 ### 5. Schema Conversion
 MCP tools use JSON Schema for input definitions. Gemini requires its own Schema format (uppercase types). `convertToGeminiSchema()` handles the conversion, including edge cases like `type: ["string", "null"]` (nullable union types).
+
+### 6. Background Cartoon Generation
+Cartoon couple portraits are generated as soon as both selfies are uploaded — not when the quiz finishes. This runs in parallel with the quiz so the image is ready by the time the match result is broadcast. If generation fails, the match result is shown without the cartoon (graceful fallback).
+
+### 7. Post-Action Context Injection
+Each partner has a private agent session. When an action is chosen, the other partner's agent doesn't automatically know. To solve this, post-action messages are prefixed with a system context block telling the agent about the match result, chosen action, and available MCP tools. This prevents the agent from re-asking quiz questions or acting confused about the current state.
 
 ---
 
@@ -404,7 +438,8 @@ MCP tools use JSON Schema for input definitions. Gemini requires its own Schema 
 - **In-memory storage**: Rooms, sessions, and tokens are all in-memory. Server restart loses everything.
 - **Single-server**: No horizontal scaling. WebSocket connections are local.
 - **Token refresh**: Access token expiry is not handled (no automatic refresh flow yet).
-- **Shared tool array**: MCP tools are pushed to a global agent tools array. If two rooms pick different actions, tools from both endpoints accumulate. For production, tools should be scoped per-session.
+- **Shared tool array**: MCP tools are pushed to a global agent tools array (deduplicated by name). If two rooms pick different actions, the latest tools replace the old. For production, tools should be scoped per-session.
+- **Cartoon generation model**: Uses `gemini-3-pro-image-preview` which requires image generation access on the API key. The compatibility score in the cartoon prompt uses a placeholder (100) since the real score isn't known until after the quiz.
 - **No HTTPS**: OAuth redirect uses `http://localhost:3000`. Production needs HTTPS.
 
 ### Production Recommendations
@@ -425,18 +460,20 @@ MCP tools use JSON Schema for input definitions. Gemini requires its own Schema 
 | File | Purpose | Key Exports |
 |------|---------|-------------|
 | `src/index.ts` | Entry point. Express setup, ADK Runner init, OAuth registration, server start | — |
-| `src/models/types.ts` | All TypeScript interfaces (`Partner`, `Room`, `MatchResult`, `WSServerMessage`), quiz questions | `Partner`, `Room`, `QUIZ_QUESTIONS`, `WSServerMessage` |
-| `src/server/routes.ts` | REST API endpoints + OAuth callback | `router`, `authCallbackRouter` |
-| `src/server/websocket.ts` | WebSocket lifecycle, message routing, auth flow trigger, match broadcasting | `setupWebSocket`, `getNotifyAuthComplete` |
+| `src/models/types.ts` | All TypeScript interfaces (`Partner`, `Room`, `MatchResult`, `WSServerMessage`), quiz questions. Partner includes `photoData`/`photoMimeType`; Room includes `cartoonImageBase64`; WSServerMessage includes `photo_uploaded`, `cartoonImage`, `photoUser` | `Partner`, `Room`, `QUIZ_QUESTIONS`, `WSServerMessage` |
+| `src/server/routes.ts` | REST API endpoints + photo upload + OAuth callback | `router`, `authCallbackRouter` |
+| `src/server/websocket.ts` | WebSocket lifecycle, message routing, auth flow trigger, background cartoon generation, match broadcasting, post-action context injection, MCP tool deduplication | `setupWebSocket`, `getNotifyAuthComplete`, `getNotifyPhotoUploaded` |
 | `src/server/middleware.ts` | CORS headers, input validation for room create/join | `corsMiddleware`, `validateRoomCreate`, `validateRoomJoin` |
-| `src/services/room.ts` | Room CRUD operations (in-memory Map) | `roomService` |
+| `src/services/room.ts` | Room CRUD operations (in-memory Map), partner photo storage | `roomService` |
 | `src/services/quiz.ts` | Quiz progression logic | `quizService` |
+| `src/services/cartoon.ts` | Cartoon couple portrait generation via `gemini-3-pro-image-preview` with both partners' selfies | `generateCartoonCouple` |
 | `src/auth/swiggy-oauth.ts` | OAuth2+PKCE: client registration, auth URL generation, code-for-token exchange, per-room token store | `registerOAuthClient`, `getAuthorizationUrl`, `exchangeCode`, `getTokens`, `hasTokens` |
-| `src/agent/agent.ts` | Creates `LlmAgent` with Gemini 2.5 Pro, quiz tools, matching tools | `createValentineAgent`, `agentTools`, `cleanupAgent` |
+| `src/agent/agent.ts` | Creates `LlmAgent` with Gemini 3 Flash Preview, quiz + matching + photo tools | `createValentineAgent`, `agentTools`, `cleanupAgent` |
 | `src/agent/instructions.ts` | Loads system prompt for the agent | `getAgentInstructions` |
-| `src/agent/prompts/valentine.ts` | Full system prompt text, quiz intro, compatibility messages | `VALENTINE_SYSTEM_PROMPT` |
+| `src/agent/prompts/valentine.ts` | Full system prompt (selfie upload instructions, photo status tool, quiz flow, compatibility messages) | `VALENTINE_SYSTEM_PROMPT` |
 | `src/agent/tools/context.ts` | AsyncLocalStorage for per-request context isolation | `currentContext`, `runWithContext` |
 | `src/agent/tools/quiz.ts` | `start_quiz`, `submit_answer`, `get_quiz_status` FunctionTools | `quizTools` |
 | `src/agent/tools/matching.ts` | `calculate_match` (scoring algo), `get_recipe` FunctionTools | `matchingTools`, `calculateMatchTool` |
+| `src/agent/tools/photo.ts` | `get_photo_status` FunctionTool — checks if both partners uploaded selfies | `photoTools` |
 | `src/agent/tools/swiggy-bridge.ts` | Per-room MCP client creation, tool discovery, JSON Schema → Gemini Schema conversion, ADK FunctionTool wrapping | `connectMCP`, `getMCPTools`, `disconnectMCP` |
-| `src/public/index.html` | Complete SPA: 5 screens, Swiggy brand styling, WebSocket client, OAuth popup handling | — |
+| `src/public/index.html` | Complete SPA: 5 screens, camera upload button, photo preview, cartoon in match card, Swiggy brand styling, WebSocket client, OAuth popup handling | — |
